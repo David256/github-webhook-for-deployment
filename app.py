@@ -6,6 +6,7 @@ import logging
 import pathlib
 import asyncio
 from typing import Union
+from distutils.version import StrictVersion
 from fastapi import FastAPI, Header, Request, HTTPException, status
 from fastapi.requests import Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -92,12 +93,24 @@ async def get_local_tags(path: Union[pathlib.Path, str]) -> list[str]:
     if stderr:
         LOG.error(stderr.decode())
         return []
-    elif stdout:
-        lines = stdout.decode().split('\n')
-        lines = [line.strip() for line in lines if line.strip()]
-        LOG.debug(lines[-10:])
-        return lines
-    return []
+    elif stdout is None:
+        LOG.error('stdout is none')
+        return []
+
+    lines = stdout.decode().split('\n')
+    lines = [line.strip() for line in lines if line.strip()]
+
+    versions = []
+    for line in lines:
+        try:
+            versions.append(StrictVersion(line))
+        except ValueError as e:
+            LOG.error('cannot parse version "%s": %s' % (line, e))
+
+    versions.sort()
+    tabs = [str(version) for version in versions]
+    LOG.debug(tabs[-10:])
+    return tabs
 
 
 @app.post('/')
