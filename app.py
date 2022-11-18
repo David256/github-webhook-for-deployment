@@ -71,13 +71,14 @@ async def get_local_tags(path: Union[pathlib.Path, str]) -> list[str]:
     """
     if isinstance(path, str):
         path = pathlib.Path(path)
-    abs_path = path.absolute() / '.git'
+    abs_path = path.absolute()
     LOG.info('check tags in path %s', abs_path)
 
     # Ask for the tags
     process = await asyncio.create_subprocess_exec(
         'git',
-        f'--git-dir={abs_path}',
+        '-C',
+        abs_path,
         '--no-pager',
         'tag',
         stdout=asyncio.subprocess.PIPE,
