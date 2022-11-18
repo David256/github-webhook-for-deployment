@@ -152,13 +152,17 @@ async def payload(
     LOG.info('%s calls %s %s', login_sender, x_gitHub_event, ref)
 
     # Check if should do git pull
-    tabs = await get_local_tags(pathlib.Path(GIT_PATH))
+    target_path = pathlib.Path(GIT_PATH)
+    tabs = await get_local_tags(target_path)
     
-    if len(tabs) != 0 and tabs[-1] != ref:
-        LOG.info('update from %s to %s', tabs[-1], ref)
-    else:
+    LOG.debug(tabs)
+    if len(tabs) != 0 and tabs[-1] == ref:
         LOG.info('found same tag: %s and %s', tabs[-1], ref)
         return { 'info': f'The last tag is the same: {tabs[-1]}' }
+    if len(tabs) == 0:
+        LOG.info('update from <non-existent tag> to %s', ref)
+    else:
+        LOG.info('update from %s to %s', tabs[-1], ref)
     
     # Update
     LOG.info('update to tag %s', ref)
