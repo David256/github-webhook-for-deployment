@@ -124,11 +124,12 @@ async def update_git_directory(path: Union[pathlib.Path, str], tag: str):
         '-C',
         abs_path,
         'pull',
+        '--ff-only',
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
     await process.wait()
-    # TODO: check if got no error
+
     process = await asyncio.create_subprocess_exec(
         'git',
         '-C',
@@ -183,7 +184,6 @@ async def payload(
     target_path = pathlib.Path(GIT_PATH)
     tabs = await get_local_tags(target_path)
     
-    LOG.debug(tabs)
     if len(tabs) != 0 and tabs[-1] == ref:
         LOG.info('found same tag: %s and %s', tabs[-1], ref)
         return { 'info': f'The last tag is the same: {tabs[-1]}' }
