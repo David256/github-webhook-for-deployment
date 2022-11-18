@@ -113,6 +113,34 @@ async def get_local_tags(path: Union[pathlib.Path, str]) -> list[str]:
     return tabs
 
 
+async def update_git_directory(path: Union[pathlib.Path, str], tag: str):
+    if isinstance(path, str):
+        path = pathlib.Path(path)
+    abs_path = path.absolute()
+    LOG.info('update the path %s to the tag %s', abs_path, tag)
+
+    process = await asyncio.create_subprocess_exec(
+        'git',
+        '-C',
+        abs_path,
+        'pull',
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    await process.wait()
+    # TODO: check if got no error
+    process = await asyncio.create_subprocess_exec(
+        'git',
+        '-C',
+        abs_path,
+        'checkout',
+        tag,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    await process.wait()
+
+
 @app.post('/')
 async def payload(
     request: Request,
@@ -166,4 +194,6 @@ async def payload(
     
     # Update
     LOG.info('update to tag %s', ref)
+
+    await update_git_directory(target_path, ref)
     return { 'info': f'update to {ref}' }
