@@ -197,3 +197,18 @@ async def payload(
 
     await update_git_directory(target_path, ref)
     return { 'info': f'update to {ref}' }
+
+
+if __name__ == '__main__':
+    try:
+        import uvicorn
+    except ImportError as e:
+        LOG.error('importation: %s', e)
+        exit()
+    
+    HOST = os.environ.get('HOST', '127.0.0.1')
+    PORT = int(os.environ.get('PORT', '8000'))
+
+    LOG.info('listens %s:%d', HOST, PORT)
+
+    uvicorn.run(app, host=HOST, port=PORT, log_level='info')
