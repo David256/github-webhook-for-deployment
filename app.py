@@ -142,6 +142,17 @@ async def update_git_directory(path: Union[pathlib.Path, str], tag: str):
     await process.wait()
 
 
+async def run_external_script(target_path: pathlib.Path):
+    process = await asyncio.create_subprocess_exec(
+        'bash',
+        'script.sh',
+        target_path,
+        # stdout=asyncio.subprocess.PIPE,
+        # stderr=asyncio.subprocess.PIPE,
+    )
+    await process.wait()
+
+
 @app.post('/')
 async def payload(
     request: Request,
@@ -196,6 +207,7 @@ async def payload(
     LOG.info('update to tag %s', ref)
 
     await update_git_directory(target_path, ref)
+    await run_external_script(target_path)
     return { 'info': f'update to {ref}' }
 
 
